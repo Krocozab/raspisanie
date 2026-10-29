@@ -14,6 +14,7 @@
 
   const WEEKS = DATA.weeks;
   const N = WEEKS.length;
+  const MINUTES_ONLY = !!(DATA.meta && DATA.meta.minutesOnly);
 
   const DAYS = [
     { key: 'mon', short: 'Пн', full: 'Понедельник' },
@@ -115,7 +116,6 @@
     return Array.isArray(list) ? list.slice() : [];
   }
 
-  // если сегодня пар нет — открываем ближайший день с парами
   (function pickSmartDay() {
     if (hasLessons(currentWeek(), DAYS[TODAY_IDX].key)) return;
     for (let i = 0; i < 7; i++) {
@@ -133,7 +133,19 @@
     return Number(m[1]) * 60 + Number(m[2]);
   }
 
-  const NOW_MIN = TODAY.getHours() * 60 + TODAY.getMinutes();
+  function nowMinutes() {
+    const d = new Date();
+    return d.getHours() * 60 + d.getMinutes();
+  }
+
+  /** «47 мин» / «2 ч 05 мин» — минуты всегда на первом месте. */
+  function humanMinutes(total) {
+    const m = Math.max(0, Math.round(total));
+    if (MINUTES_ONLY || m < 60) return m + ' мин';
+    const h = Math.floor(m / 60);
+    const rest = m % 60;
+    return h + ' ч' + (rest ? ' ' + String(rest).padStart(2, '0') + ' мин' : '');
+  }
 
   /* ---------------- элементы ---------------- */
 
@@ -218,7 +230,60 @@
     });
   }
 
-  function renderContent() {
+  /** Находит пару, которая идёт сейчас, и следующую по времени. */
+  function pickCurrentAndNext(lessons, now) {
+    let current = -1;
+    let next = -1;
+
+    lessons.forEach(function (lesson, i) {
+      const s = toMinutes(lesson.start);
+      const e = toMinutes(lesson.end);
+      if (s == null) return;
+      if (e != null && now >= s && now < e) {
+        if (current === -1) current = i;
+        return;
+      }
+      if (now < s && next === -1) next = i;
+    });
+
+    return { current: current, next: next };
+  }
+
+  function statusHTML(lessons, now) {
+    const found = pickCurrentAndNext(lessons, now);
+
+    if (found.current >= 0) {
+      const lesson = lessons[found.current];
+      const end = toMinutes(lesson.end);
+      const left = end == null ? null : end - now;
+      return '<div class="status status-live">' +
+        '<span class="status-label">Идёт пара</span>' +
+        '<span class="status-value">' + (left == null ? 'сейчас' : humanMinutes(left)) + '</span>' +
+        '<span class="status-sub">' + (left == null ? '' : 'до конца · ') +
+          esc(lesson.subject || '') + (lesson.room ? ' · ' + esc(lesson.room) : '') + '</span>' +
+        '</div>';
+    }
+
+    if (found.next >= 0) {
+      const lesson = lessons[found.next];
+      const diff = toMinutes(lesson.start) - now;
+      return '<div class="status">' +
+        '<span class="status-label">До начала пары</span>' +
+        '<span class="status-value">' + humanMinutes(diff) + '</span>' +
+        '<span class="status-sub">' + esc(lesson.start) + ' · ' + esc(lesson.subject || '') +
+          (lesson.room ? ' · ' + esc(lesson.room) : '') + '</span>' +
+        '</div>';
+    }
+
+    return '<div class="status status-done">' +
+      '<span class="status-label">На сегодня</span>' +
+      '<span class="status-sub">пар больше нет</span>' +
+      '</div>';
+  }
+
+  function renderContent(still) {
+    if (still) contentEl.classList.add('still');
+
     const week = currentWeek();
     const dayKey = DAYS[state.day].key;
     const lessons = lessonsFor(week, dayKey);
@@ -237,17 +302,24 @@
         '<div class="title">' + (isWeekend ? 'Выходной' : 'Пар нет') + '</div>' +
         '<div class="hint">' + esc(DAYS[state.day].full) + ' — занятий не найдено.</div>' +
         '</div>';
+      if (still) requestAnimationFrame(function () { contentEl.classList.remove('still'); });
       return;
     }
 
     const onToday = state.offset === 0 && state.day === TODAY_IDX;
+    const now = nowMinutes();
+    const found = onToday ? pickCurrentAndNext(lessons, now) : { current: -1, next: -1 };
+
     let html = '';
+
+    if (onToday) html += statusHTML(lessons, now);
 
     lessons.forEach(function (lesson, idx) {
       const start = toMinutes(lesson.start);
       const end = toMinutes(lesson.end);
-      const isNow = onToday && start != null && end != null && NOW_MIN >= start && NOW_MIN < end;
-      const isPast = onToday && end != null && NOW_MIN >= end;
+      const isNow = onToday && start != null && end != null && now >= start && now < end;
+      const isPast = onToday && end != null && now >= end;
+      const isNext = idx === found.next;
 
       const cls = ['lesson'];
       if (isNow) cls.push('now');
@@ -259,8 +331,15 @@
 
       html += '<div class="lesson-time">' +
         '<span class="t-start">' + esc(lesson.start || '') + '</span>' +
-        (lesson.end ? '<span class="t-end">' + esc(lesson.end) + '</span>' : '') +
-        '</div>';
+        (lesson.end ? '<span class="t-end">' + esc(lesson.end) + '</span>' : '');
+
+      if (isNext && start != null) {
+        html += '<span class="t-left">через ' + humanMinutes(start - now) + '</span>';
+      } else if (isNow && end != null) {
+        html += '<span class="t-left">ещё ' + humanMinutes(end - now) + '</span>';
+      }
+
+      html += '</div>';
 
       html += '<div class="lesson-body"><p class="lesson-subject">';
       if (lesson.kind) html += '<span class="kind">' + esc(lesson.kind) + '</span>';
@@ -278,6 +357,8 @@
     });
 
     contentEl.innerHTML = html;
+
+    if (still) requestAnimationFrame(function () { contentEl.classList.remove('still'); });
   }
 
   function renderFootnote() {
@@ -301,7 +382,7 @@
   function render() {
     renderWeekSwitch();
     renderDayTabs();
-    renderContent();
+    renderContent(false);
     renderFootnote();
     renderTodayBtn();
     document.title = (currentWeek().label || 'Расписание') + ' · Расписание';
@@ -344,6 +425,22 @@
 
   themeBtn.addEventListener('click', function () {
     applyTheme(document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light');
+  });
+
+  /* ---------------- живое обновление счётчика ---------------- */
+
+  function refreshLive() {
+    if (state.offset !== 0 || state.day !== TODAY_IDX) return;
+    renderContent(true);
+  }
+
+  setInterval(function () {
+    if (document.hidden) return;
+    refreshLive();
+  }, 20000);
+
+  document.addEventListener('visibilitychange', function () {
+    if (!document.hidden) refreshLive();
   });
 
   render();
