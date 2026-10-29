@@ -1,0 +1,410 @@
+:root {
+  color-scheme: dark;
+  --bg: #0d1220;
+  --bg-glow-1: rgba(110, 130, 255, .18);
+  --bg-glow-2: rgba(70, 200, 180, .12);
+  --surface: #172033;
+  --surface-2: #1e2942;
+  --text: #e9eefb;
+  --muted: #93a1c0;
+  --line: rgba(255, 255, 255, .09);
+  --accent: #7b8cff;
+  --accent-2: #a78bfa;
+  --accent-ink: #0b1020;
+  --now: #4ade80;
+  --radius: 18px;
+  --shadow: 0 12px 32px rgba(0, 0, 0, .32);
+}
+
+html[data-theme="light"] {
+  color-scheme: light;
+  --bg: #f1f4fb;
+  --bg-glow-1: rgba(110, 130, 255, .22);
+  --bg-glow-2: rgba(70, 200, 180, .16);
+  --surface: #ffffff;
+  --surface-2: #f4f6fd;
+  --text: #101a2e;
+  --muted: #64708c;
+  --line: rgba(16, 26, 46, .09);
+  --accent: #5563e8;
+  --accent-2: #7c5ce0;
+  --accent-ink: #ffffff;
+  --now: #12a05a;
+  --shadow: 0 10px 26px rgba(30, 45, 80, .12);
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+}
+
+body {
+  background:
+    radial-gradient(900px 520px at 12% -8%, var(--bg-glow-1), transparent 70%),
+    radial-gradient(760px 460px at 100% 4%, var(--bg-glow-2), transparent 72%),
+    var(--bg);
+  background-attachment: fixed;
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.app {
+  max-width: 620px;
+  margin: 0 auto;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: calc(env(safe-area-inset-top, 0px) + 16px) 16px calc(env(safe-area-inset-bottom, 0px) + 28px);
+}
+
+/* ---------- шапка ---------- */
+
+.topbar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 4px;
+}
+
+.titles h1 {
+  margin: 0;
+  font-size: 27px;
+  font-weight: 700;
+  letter-spacing: -.02em;
+}
+
+.subtitle {
+  margin: 4px 0 0;
+  font-size: 13.5px;
+  color: var(--muted);
+  min-height: 18px;
+}
+
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-top: 3px;
+}
+
+.icon-btn {
+  width: 40px;
+  height: 40px;
+  flex: none;
+  border-radius: 13px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 17px;
+  line-height: 1;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: transform .12s ease, background .15s ease;
+}
+
+.icon-btn:active { transform: scale(.94); }
+
+.ghost-btn {
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  padding: 9px 14px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: transform .12s ease;
+}
+
+.ghost-btn:active { transform: scale(.96); }
+
+/* ---------- переключатель недель ---------- */
+
+.week-switch {
+  display: flex;
+  gap: 6px;
+  padding: 5px;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+}
+
+.week-switch button {
+  flex: 1 1 0;
+  min-width: 0;
+  padding: 11px 8px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+  transition: background .18s ease, color .18s ease, box-shadow .18s ease;
+}
+
+.week-switch button[aria-selected="true"] {
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  color: var(--accent-ink);
+  box-shadow: 0 6px 18px -6px var(--accent);
+}
+
+/* ---------- дни ---------- */
+
+.day-tabs {
+  display: flex;
+  gap: 7px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  padding: 2px 2px 4px;
+  margin: 0 -2px;
+}
+
+.day-tabs::-webkit-scrollbar { display: none; }
+
+.day-tab {
+  flex: 0 0 auto;
+  min-width: 52px;
+  padding: 9px 10px 8px;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--muted);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  font: inherit;
+  transition: background .18s ease, color .18s ease, transform .12s ease, border-color .18s ease;
+}
+
+.day-tab:active { transform: scale(.96); }
+
+.day-tab .d-name {
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: .02em;
+}
+
+.day-tab .d-date {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.day-tab[aria-current="true"] {
+  border-color: color-mix(in srgb, var(--accent) 55%, transparent);
+}
+
+.day-tab.is-today .d-name { color: var(--accent); }
+
+.day-tab[aria-selected="true"] {
+  background: linear-gradient(160deg, var(--accent), var(--accent-2));
+  border-color: transparent;
+  color: var(--accent-ink);
+  box-shadow: 0 8px 20px -10px var(--accent);
+}
+
+.day-tab[aria-selected="true"] .d-date,
+.day-tab[aria-selected="true"] .d-name { color: var(--accent-ink); }
+
+.day-tab.is-empty { opacity: .55; }
+
+/* ---------- список пар ---------- */
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  flex: 1 1 auto;
+}
+
+.lesson {
+  position: relative;
+  display: flex;
+  gap: 13px;
+  align-items: flex-start;
+  padding: 14px 14px 14px 12px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  animation: rise .26s ease both;
+}
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+
+.lesson.past { opacity: .5; }
+
+.lesson.now {
+  border-color: color-mix(in srgb, var(--now) 55%, transparent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--now) 30%, transparent), var(--shadow);
+}
+
+.lesson-time {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-top: 1px;
+  min-width: 46px;
+  font-variant-numeric: tabular-nums;
+}
+
+.lesson-time .t-start {
+  font-size: 14.5px;
+  font-weight: 700;
+}
+
+.lesson-time .t-end {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.lesson-body {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.lesson-subject {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 650;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+  padding-right: 54px;
+}
+
+.lesson-subject .kind {
+  display: inline-block;
+  margin-right: 6px;
+  padding: 1px 6px;
+  border-radius: 7px;
+  background: var(--accent-soft, rgba(123, 140, 255, .18));
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 700;
+  vertical-align: 1.5px;
+}
+
+.lesson-meta {
+  margin: 7px 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 9px;
+  border-radius: 9px;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.chip.room { color: var(--text); }
+
+.lesson-note {
+  margin: 7px 0 0;
+  font-size: 12.5px;
+  color: var(--muted);
+  font-style: italic;
+}
+
+.badge-now {
+  position: absolute;
+  top: 11px;
+  right: 11px;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: var(--now);
+  background: color-mix(in srgb, var(--now) 14%, transparent);
+  border: 1px solid color-mix(in srgb, var(--now) 35%, transparent);
+  border-radius: 999px;
+  padding: 3px 8px;
+}
+
+/* ---------- пустое состояние ---------- */
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-align: center;
+  padding: 52px 18px;
+  color: var(--muted);
+  border: 1px dashed var(--line);
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--surface) 55%, transparent);
+}
+
+.empty .emoji { font-size: 34px; line-height: 1; }
+.empty .title { font-size: 15.5px; font-weight: 650; color: var(--text); }
+.empty .hint { font-size: 13px; max-width: 260px; line-height: 1.45; }
+
+/* ---------- подвал ---------- */
+
+.footnote {
+  margin-top: auto;
+  padding-top: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.link-btn {
+  border: 0;
+  background: none;
+  padding: 3px 6px;
+  font: inherit;
+  font-size: 11.5px;
+  color: var(--muted);
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-underline-offset: 3px;
+  cursor: pointer;
+  opacity: .8;
+}
+
+.link-btn:active { opacity: 1; }
+
+@media (min-width: 480px) {
+  .titles h1 { font-size: 30px; }
+  .lesson { padding: 16px 16px 16px 14px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
