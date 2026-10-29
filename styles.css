@@ -112,6 +112,11 @@ body {
 
 .icon-btn:active { transform: scale(.94); }
 
+.icon-btn.is-off {
+  opacity: .45;
+  filter: grayscale(.4);
+}
+
 .ghost-btn {
   border: 1px solid var(--line);
   background: var(--surface);
@@ -234,6 +239,76 @@ body {
   gap: 9px;
   flex: 1 1 auto;
 }
+
+.content.still .lesson { animation: none; }
+
+/* ---------- плашка-отчёт «до начала пары» ---------- */
+
+.status {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 14px 16px;
+  border-radius: var(--radius);
+  border: 1px solid color-mix(in srgb, var(--accent) 38%, transparent);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--accent) 14%, transparent), transparent 70%),
+    var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.status-label {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.status-value {
+  font-size: 30px;
+  font-weight: 750;
+  line-height: 1.15;
+  letter-spacing: -.02em;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+.status-sub {
+  font-size: 13px;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+
+.status-live {
+  border-color: color-mix(in srgb, var(--now) 45%, transparent);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--now) 14%, transparent), transparent 70%),
+    var(--surface);
+}
+
+.status-live .status-value { color: var(--now); }
+
+.status-done {
+  flex-direction: row;
+  align-items: baseline;
+  gap: 8px;
+  border-color: var(--line);
+  background: var(--surface);
+  box-shadow: none;
+}
+
+.status-done .status-label { color: var(--text); }
+
+.t-left {
+  margin-top: 3px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent);
+  white-space: nowrap;
+}
+
+.lesson.now .t-left { color: var(--now); }
 
 .lesson {
   position: relative;
